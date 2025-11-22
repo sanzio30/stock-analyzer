@@ -458,6 +458,70 @@ def admin_users():
     conn.close()
     return render_template("admin_users.html", users=users)
 
+# Edit user (admin)
+@app.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
+@admin_required
+def admin_edit_user(user_id):
+    conn = get_db_connection()
+    user = conn.execute(
+        "SELECT * FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+
+    if not user:
+        conn.close()
+        flash("User tidak ditemukan.", "danger")
+        return redirect(url_for("admin_users"))
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
+        is_admin = 1 if request.form.get("is_admin") == "on" else 0
+        is_verified = 1 if request.form.get("is_verified") == "on" else 0
+
+        if not username or not email:
+            flash("Username dan email wajib diisi.", "danger")
+            conn.close()
+            return render_template("admin_edit_user.html", user=user)
+
+        try:
+            conn.execute("""
+                UPDATE users
+                SET username = ?, email = ?, is_admin = ?, is_verified = ?
+                WHERE id = ?
+            """, (username, email, is_admin, is_verified, user_id))
+            conn.commit()
+            flash("User berhasil diupdate.", "success")
+        except sqlite3.IntegrityError:
+            flash("Username atau email sudah dipakai.", "danger")
+
+        conn.close()
+        return redirect(url_for("admin_users"))
+
+    conn.close()
+    return render_template("admin_edit_user.html", user=user)
+
+
+# Delete user (admin)
+@app.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def admin_delete_user(user_id):
+    current = get_current_user()
+    if current and current["id"] == user_id:
+        flash("Tidak bisa menghapus akun admin yang sedang login.", "danger")
+        return redirect(url_for("admin_users"))
+
+    conn = get_db_connection()
+
+    # Hapus dulu semua watchlist user ini untuk menghindari FOREIGN KEY error
+    conn.execute("DELETE FROM watchlist WHERE user_id = ?", (user_id,))
+    conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+    flash("User dan watchlist terkait telah dihapus.", "info")
+    return redirect(url_for("admin_users"))
+
 
 @app.route("/admin/watchlist")
 @admin_required

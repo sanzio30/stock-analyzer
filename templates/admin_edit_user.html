@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Admin - Edit User{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">Admin: Edit User</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">
+                    Edit User #{{ user.id }}
+                </h5>
+
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text"
+                               class="form-control"
+                               id="username"
+                               name="username"
+                               value="{{ user.username }}"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               name="email"
+                               value="{{ user.email }}"
+                               required>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="is_admin"
+                               name="is_admin"
+                               {% if user.is_admin %}checked{% endif %}>
+                        <label class="form-check-label" for="is_admin">
+                            Admin
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="is_verified"
+                               name="is_verified"
+                               {% if user.is_verified %}checked{% endif %}>
+                        <label class="form-check-label" for="is_verified">
+                            Email Verified
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Simpan Perubahan
+                    </button>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary ms-2">
+                        Kembali
+                    </a>
+                </form>
+
+                <p class="text-muted small mt-3">
+                    * Perubahan tidak mengubah password.  
+                    Untuk reset password, gunakan fitur "Lupa Password".
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -13,6 +13,7 @@
         <th>Admin</th>
         <th>Verified</th>
         <th>Created</th>
+        <th>Aksi</th>
     </tr>
     </thead>
     <tbody>
@@ -24,10 +25,33 @@
             <td>{{ 'Ya' if u.is_admin else 'Tidak' }}</td>
             <td>{{ 'Ya' if u.is_verified else 'Tidak' }}</td>
             <td>{{ u.created_at }}</td>
+            <td>
+                <a href="{{ url_for('admin_edit_user', user_id=u.id) }}"
+                   class="btn btn-sm btn-outline-primary me-1">
+                    Edit
+                </a>
+
+                {# Jangan izinkan user menghapus dirinya sendiri #}
+                {% if u.id != session.get('user_id') %}
+                <form method="post"
+                      action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                      style="display:inline-block"
+                      onsubmit="return confirm('Hapus user ini? Semua watchlist user juga akan dihapus.');">
+                    <button type="submit"
+                            class="btn btn-sm btn-outline-danger">
+                        Delete
+                    </button>
+                </form>
+                {% else %}
+                <span class="text-muted small">(akun sendiri)</span>
+                {% endif %}
+            </td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
 
-<a href="{{ url_for('admin_watchlist') }}" class="btn btn-outline-primary btn-sm">Lihat Watchlist</a>
+<a href="{{ url_for('admin_watchlist') }}" class="btn btn-outline-secondary btn-sm">
+    Lihat Semua Watchlist
+</a>
 {% endblock %}
