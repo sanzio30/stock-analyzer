@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Stock Analyzer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Kolom kiri: Form Analisa + Hasil -->
+    <div class="col-lg-8 mb-4">
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h4 class="card-title mb-3">Analisa Fundamental Saham</h4>
+                <form method="post" class="row g-3">
+                    <div class="col-md-8">
+                        <label for="ticker" class="form-label">Kode Saham</label>
+                        <input type="text"
+                               class="form-control"
+                               id="ticker"
+                               name="ticker"
+                               placeholder="BBCA, BBRI, ANTM, AAPL, 7203.T"
+                               value="{{ ticker_input }}">
+                        <div class="form-text">
+                            • ID: cukup ticker (BBCA, BBRI), script auto cari .JK<br>
+                            • Global: AAPL, MSFT, TSLA, 7203.T, dll.
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" type="submit">Analisa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if analyze_result %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {{ analyze_result.name or analyze_result.used_ticker }}
+                    <small class="text-muted">
+                        ({{ analyze_result.input_ticker }} → {{ analyze_result.used_ticker }})
+                    </small>
+                </h5>
+                <p class="mb-1">
+                    <strong>Sector:</strong> {{ analyze_result.sector or '-' }}<br>
+                    <strong>Industry:</strong> {{ analyze_result.industry or '-' }}<br>
+                    <strong>Currency:</strong> {{ analyze_result.currency or '-' }}
+                </p>
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Size & Valuasi</h6>
+                        <table class="table table-sm table-bordered align-middle">
+                            <tbody>
+                            <tr>
+                                <th>Price</th>
+                                <td>{{ analyze_result.price_str or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Market Cap</th>
+                                <td>{{ analyze_result.market_cap_str or '-' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Shares Outstanding</th>
+                                <td>{{ analyze_result.shares_out_str or '-' }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Key Ratios</h6>
+                        <table class="table table-sm table-bordered align-middle">
+                            <tbody>
+                            <tr>
+                                <th>PER</th>
+                                <td>{{ analyze_result.ratios.PER_str or 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>PBV</th>
+                                <td>{{ analyze_result.ratios.PBV_str or 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>ROE (%)</th>
+                                <td>{{ analyze_result.ratios.ROE_str or 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>DER</th>
+                                <td>{{ analyze_result.ratios.DER_str or 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Dividend Yield (%)</th>
+                                <td>{{ analyze_result.ratios.DividendYield_str or 'N/A' }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h6 class="mt-3">Growth (Net Income)</h6>
+                {% if analyze_result.growth_list %}
+                    <table class="table table-sm table-bordered align-middle">
+                        <thead>
+                        <tr>
+                            <th>Periode</th>
+                            <th>Net Income</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in analyze_result.growth_list %}
+                            <tr>
+                                <td>{{ item.period }}</td>
+                                <td>{{ item.value_str }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <p class="mb-0">
+                        <strong>CAGR Net Income (approx):</strong>
+                        {% if analyze_result.growth_cagr_str %}
+                            {{ analyze_result.growth_cagr_str }}% / tahun
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                {% else %}
+                    <p class="text-muted">Data Net Income tidak tersedia / gagal diambil.</p>
+                {% endif %}
+
+                <p class="text-muted small mt-3">
+                    Data dari yfinance (Yahoo Finance). Selalu kombinasikan dengan laporan resmi dan berita terbaru.
+                </p>
+            </div>
+        </div>
+
+        {% if chart_img %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="card-title">Price Chart (6 bulan)</h6>
+                <img src="data:image/png;base64,{{ chart_img }}" class="img-fluid" alt="Price Chart">
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Kolom kanan: Watchlist -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Watchlist Saya</h5>
+
+                <form method="post" action="{{ url_for('add_watchlist') }}" class="row g-2 mb-3">
+                    <div class="col-5">
+                        <input type="text" name="ticker_watchlist" class="form-control"
+                               placeholder="Ticker" required>
+                    </div>
+                    <div class="col-5">
+                        <input type="text" name="note" class="form-control"
+                               placeholder="Catatan (opsional)">
+                    </div>
+                    <div class="col-2 d-grid">
+                        <button type="submit" class="btn btn-success btn-sm">Add</button>
+                    </div>
+                </form>
+
+                {% if watchlist %}
+                    <table class="table table-sm table-bordered align-middle">
+                        <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Last Price</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for w in watchlist %}
+                            <tr>
+                                <td>
+                                    <strong>{{ w.ticker }}</strong><br>
+                                    <small class="text-muted">{{ w.note }}</small>
+                                </td>
+                                <td>
+                                    {% if w.last_price is not none %}
+                                        {{ "%.2f"|format(w.last_price) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <form method="post"
+                                          action="{{ url_for('delete_watchlist', item_id=w.id) }}"
+                                          onsubmit="return confirm('Hapus dari watchlist?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">&times;</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="text-muted mb-0">Belum ada saham di watchlist.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

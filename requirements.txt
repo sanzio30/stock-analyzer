@@ -1,0 +1,6 @@
+Flask
+yfinance
+pandas
+matplotlib
+gunicorn
+Werkzeug

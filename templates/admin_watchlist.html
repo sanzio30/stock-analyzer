@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Admin - Watchlist{% endblock %}
+
+{% block content %}
+<h3 class="mb-3">Admin: Semua Watchlist</h3>
+
+<table class="table table-sm table-bordered align-middle">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Ticker</th>
+        <th>Catatan</th>
+        <th>Dibuat</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+        <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.username }}</td>
+            <td>{{ r.ticker }}</td>
+            <td>{{ r.note }}</td>
+            <td>{{ r.created_at }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary btn-sm">Lihat Users</a>
+{% endblock %}
